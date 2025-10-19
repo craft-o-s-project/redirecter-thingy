@@ -1,7 +1,7 @@
 {
-  "name": "untitled-redirect-app",
+  "name": "redirecter-thingy",
   "version": "1.0.0",
-  "description": "Simple Node.js page with query cookie and buttons",
+  "description": "Node.js app with query cookie and buttons",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

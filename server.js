@@ -106,10 +106,9 @@ app.get("/", (req, res) => {
   </div>
 </div>
 
-<button id="refreshBtn" onclick="window.location.reload(true)">⟳ Refresh</button>
+<button id="refreshBtn" onclick="window.location.reload(true)">⟳ Refresh UI</button>
 
 <script>
-  let currentTab = "browser";
   let iframe = document.getElementById("browser");
 
   function openTab(tabName) {
@@ -117,10 +116,10 @@ app.get("/", (req, res) => {
     document.querySelectorAll("iframe, #inventory").forEach(el => el.style.display = "none");
 
     if (tabName === "inventory") {
-      document.querySelector(`.tab:nth-child(2)`).classList.add("active");
+      document.querySelector(".tab:nth-child(2)").classList.add("active");
       document.getElementById("inventory").style.display = "flex";
     } else {
-      document.querySelector(`.tab:nth-child(1)`).classList.add("active");
+      document.querySelector(".tab:nth-child(1)").classList.add("active");
       iframe.style.display = "block";
       iframe.src = iframe.src; // Fixes the white screen bug
     }
@@ -132,7 +131,7 @@ app.get("/", (req, res) => {
 
     if (!url.startsWith("http")) url = "https://" + url;
     iframe.src = url;
-    document.cookie = `lastSite=${url}; path=/; max-age=31536000`;
+    document.cookie = \`lastSite=\${url}; path=/; max-age=31536000\`;
   }
 
   // Only load cookie if query is null
@@ -168,5 +167,5 @@ app.get("/", (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(\`Server running on port \${PORT}\`);
 });

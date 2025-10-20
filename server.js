@@ -52,18 +52,36 @@ app.get("/", (req, res) => {
       color: white;
       display: none;
     }
+    #iframeContainer {
+      width: 80%;
+      height: 500px;
+      margin: 20px auto;
+      display: none;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+    }
+    #iframeContainer iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      border-radius: 8px;
+    }
   </style>
 </head>
 <body>
   <h1>Welcome to stickk's web browser mod for blobtown!</h1>
-  <p>You can make your way back to this page by closing the inventory and re-opening it! (audio works btw so you can watch YouTube!)</p>
+  <p>(audio works btw so you can watch YouTube!)</p>
   <p>You can click the inventory button or the Google button below! Uh, happy tracing!</p>
 
   <button id="btn1">Inventory</button>
-  <button id="btn2">Go to Google</button>
+  <button id="btn2">Google</button>
 
   <button id="showQueryBtn">Show BlobToken (dont show to anyone!)</button>
   <div id="lastQueryBox"></div>
+
+  <div id="iframeContainer">
+    <iframe id="contentFrame" src=""></iframe>
+  </div>
 
   <script>
     // Save query in cookie
@@ -81,14 +99,18 @@ app.get("/", (req, res) => {
     const btn2 = document.getElementById("btn2");
     const showBtn = document.getElementById("showQueryBtn");
     const lastQueryBox = document.getElementById("lastQueryBox");
+    const iframeContainer = document.getElementById("iframeContainer");
+    const contentFrame = document.getElementById("contentFrame");
 
     // Button actions
     btn1.onclick = () => {
-      window.location.href = "${BUTTON1_URL}" + "${q}";
+      contentFrame.src = "${BUTTON1_URL}" + "${q}";
+      iframeContainer.style.display = "block";
     };
 
     btn2.onclick = () => {
-      window.location.href = "${BUTTON2_URL}";
+      contentFrame.src = "${BUTTON2_URL}";
+      iframeContainer.style.display = "block";
     };
 
     showBtn.onclick = () => {

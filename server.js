@@ -33,7 +33,7 @@ app.get("/", (req, res) => {
 </style>
 </head>
 <body>
-<h1>BlobTown + Custom URL + Image Tabs</h1>
+<h1>hi this is my browser mod!</h1>
 
 <div class="tabs">
   <div class="tab active" id="tab1">Inventory</div>

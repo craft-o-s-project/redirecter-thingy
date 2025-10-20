@@ -6,7 +6,7 @@ const PORT = process.env.PORT || 3000;
 
 // Button URLs
 const BUTTON1_URL = "https://app.blobtown.com/?blobt=";
-const BUTTON2_URL = "https://www.google.com";
+const BUTTON2_URL = "https://duckduckgo.com";
 
 app.get("/", (req, res) => {
   const q = req.query.q || "";
@@ -31,28 +31,7 @@ app.get("/", (req, res) => {
       font-size: 16px;
       cursor: pointer;
     }
-    #showQueryBtn, #lastQueryBox {
-      position: fixed;
-      bottom: 10px;
-      left: 10px;
-      font-size: 14px;
-      font-family: monospace;
-      border: none;
-      border-radius: 8px;
-      padding: 8px 12px;
-      transition: opacity 0.3s ease;
-    }
-    #showQueryBtn {
-      background: #007bff;
-      color: white;
-      cursor: pointer;
-    }
-    #lastQueryBox {
-      background: rgba(0,0,0,0.7);
-      color: white;
-      display: none;
-    }
-    #iframeContainer {
+    .iframeContainer {
       width: 80%;
       height: 500px;
       margin: 20px auto;
@@ -60,7 +39,7 @@ app.get("/", (req, res) => {
       border: 2px solid #ccc;
       border-radius: 8px;
     }
-    #iframeContainer iframe {
+    .iframeContainer iframe {
       width: 100%;
       height: 100%;
       border: none;
@@ -70,67 +49,43 @@ app.get("/", (req, res) => {
 </head>
 <body>
   <h1>Welcome to stickk's web browser mod for blobtown!</h1>
-  <p>(audio works btw so you can watch YouTube!)</p>
-  <p>You can click the inventory button or the Google button below! Uh, happy tracing!</p>
+  <p>You can make your way back to this page by closing the inventory and re-opening it! (audio works btw so you can watch YouTube!)</p>
+  <p>You can click the inventory button or the DuckDuckGo button below! Uh, happy tracing!</p>
 
   <button id="btn1">Inventory</button>
-  <button id="btn2">Google</button>
+  <button id="btn2">Go to DuckDuckGo</button>
 
-  <button id="showQueryBtn">Show BlobToken (dont show to anyone!)</button>
-  <div id="lastQueryBox"></div>
+  <div id="iframe1Container" class="iframeContainer">
+    <iframe id="iframe1" src=""></iframe>
+  </div>
 
-  <div id="iframeContainer">
-    <iframe id="contentFrame" src=""></iframe>
+  <div id="iframe2Container" class="iframeContainer">
+    <iframe id="iframe2" src=""></iframe>
   </div>
 
   <script>
     // Save query in cookie
     document.cookie = "query=${q}; path=/; max-age=31536000";
 
-    // Cookie reader
-    function getCookie(name) {
-      const value = "; " + document.cookie;
-      const parts = value.split("; " + name + "=");
-      if (parts.length === 2) return parts.pop().split(";").shift();
-    }
-
     // Elements
     const btn1 = document.getElementById("btn1");
     const btn2 = document.getElementById("btn2");
-    const showBtn = document.getElementById("showQueryBtn");
-    const lastQueryBox = document.getElementById("lastQueryBox");
-    const iframeContainer = document.getElementById("iframeContainer");
-    const contentFrame = document.getElementById("contentFrame");
+    const iframe1Container = document.getElementById("iframe1Container");
+    const iframe2Container = document.getElementById("iframe2Container");
+    const iframe1 = document.getElementById("iframe1");
+    const iframe2 = document.getElementById("iframe2");
 
     // Button actions
     btn1.onclick = () => {
-      contentFrame.src = "${BUTTON1_URL}" + "${q}";
-      iframeContainer.style.display = "block";
+      iframe1.src = "${BUTTON1_URL}" + "${q}";
+      iframe1Container.style.display = "block";
+      iframe2Container.style.display = "none";
     };
 
     btn2.onclick = () => {
-      contentFrame.src = "${BUTTON2_URL}";
-      iframeContainer.style.display = "block";
-    };
-
-    showBtn.onclick = () => {
-      const lastQuery = getCookie("query");
-      if (lastQuery) {
-        lastQueryBox.textContent = " Your BlobToken: " + decodeURIComponent(lastQuery);
-      } else {
-        lastQueryBox.textContent = "BlobToken not found";
-      }
-
-      // Animate transition
-      showBtn.style.opacity = "0";
-      setTimeout(() => {
-        showBtn.style.display = "none";
-        lastQueryBox.style.display = "block";
-        lastQueryBox.style.opacity = "0";
-        setTimeout(() => {
-          lastQueryBox.style.opacity = "1";
-        }, 10);
-      }, 300);
+      iframe2.src = "${BUTTON2_URL}";
+      iframe2Container.style.display = "block";
+      iframe1Container.style.display = "none";
     };
   </script>
 </body>

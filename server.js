@@ -29,7 +29,7 @@ app.get("/", (req, res) => {
   .tab.active { background: #0078ff; }
   iframe { width: 100%; height: calc(100vh - 50px); border: none; display: none; }
   #inventory, #traceImage { display: none; flex-direction: column; align-items: center; justify-content: center; background: #111; height: calc(100vh - 50px); }
-  #uploadBox { display: none; margin-top: 20px; }
+  #traceImage { background: #fff; color: #000; }
   img { max-width: 80%; max-height: 70vh; object-fit: contain; }
   #refreshBtn { position: fixed; bottom: 15px; right: 15px; background: #0078ff; border: none; border-radius: 8px; padding: 8px 12px; color: white; font-size: 14px; cursor: pointer; }
 </style>
@@ -53,11 +53,8 @@ app.get("/", (req, res) => {
   <iframe id="inventoryIframe"></iframe>
 </div>
 <div id="traceImage">
-  <button onclick="toggleUpload()">Toggle Image Upload</button>
-  <div id="uploadBox">
-    <input type="file" id="fileInput" accept="image/*"><br>
-    <img id="uploadedImage" alt="">
-  </div>
+  <input type="file" id="fileInput" accept="image/*"><br>
+  <img id="uploadedImage" alt="">
 </div>
 
 <button id="refreshBtn" onclick="location.reload(true)">⟳ Refresh</button>
@@ -91,11 +88,6 @@ app.get("/", (req, res) => {
     if (!url.startsWith("http")) url = "https://" + url;
     browserIframe.src = url;
     document.cookie = "lastSite=" + url + "; path=/; max-age=31536000";
-  }
-
-  function toggleUpload() {
-    const box = document.getElementById("uploadBox");
-    box.style.display = box.style.display === "none" ? "block" : "none";
   }
 
   document.getElementById("fileInput").addEventListener("change", function(event) {

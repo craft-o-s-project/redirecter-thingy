@@ -14,105 +14,116 @@ app.get("/", (req, res) => {
   res.send(`<!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <title>Welcome to stickk's web browser mod for blobtown!</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 20px;
-      background: #f0f0f0;
-    }
-    h1 { color: #333; }
-    button {
-      padding: 12px 25px;
-      margin: 10px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    input[type="text"] {
-      padding: 8px;
-      font-size: 14px;
-      width: 250px;
-      margin-right: 5px;
-    }
-    .iframeContainer {
-      width: 100%;
-      height: 90vh;
-      margin: 20px 0;
-      display: none;
-      border: 2px solid #ccc;
-      border-radius: 8px;
-      overflow: hidden;
-    }
-    .iframeContainer iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-      margin: 0;
-      padding: 0;
-    }
-  </style>
+<meta charset="utf-8">
+<title>BlobTown Tabs + Custom URL + Image</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 0; background: #f0f0f0; }
+  h1 { text-align: center; padding: 10px; margin: 0; }
+  .tabs { display: flex; background: #ddd; }
+  .tab { flex: 1; text-align: center; padding: 10px; cursor: pointer; border-right: 1px solid #bbb; }
+  .tab:last-child { border-right: none; }
+  .tab.active { background: #fff; font-weight: bold; }
+  .container { width: 90%; margin: 10px auto; height: 60vh; border: 2px solid #ccc; border-radius: 8px; overflow: hidden; position: relative; }
+  iframe { width: 100%; height: 100%; border: none; }
+  #uploadedImageContainer img { max-width: 100%; max-height: 100%; border-radius: 8px; display: block; margin: 0 auto; }
+  #customUrlBar { text-align: center; margin-top: 5px; }
+  input[type="text"], input[type="file"] { padding: 6px; font-size: 14px; margin: 5px; }
+  button { padding: 6px 12px; margin: 0 5px; }
+</style>
 </head>
 <body>
-  <h1>Welcome to stickk's web browser mod for blobtown!</h1>
-  <p>Click Inventory to open BlobTown, or enter any website below!</p>
+<h1>BlobTown + Custom URL + Image Tabs</h1>
 
-  <button id="btn1">Inventory</button>
+<div class="tabs">
+  <div class="tab active" id="tab1">Inventory</div>
+  <div class="tab" id="tab2">Custom URL</div>
+  <div class="tab" id="tab3">Local Image</div>
+</div>
 
-  <div id="iframe1Container" class="iframeContainer">
-    <iframe id="iframe1" src=""></iframe>
-  </div>
+<div id="customUrlBar">
+  <input type="text" id="customUrl" placeholder="Enter website URL">
+  <button id="goBtn">Go</button>
+</div>
 
-  <div>
-    <input type="text" id="customUrl" placeholder="Enter a website URL (https://...)">
-    <button id="goBtn">Go</button>
-  </div>
+<div class="container">
+  <iframe id="iframe1" src=""></iframe>
+  <iframe id="iframe2" src="" style="display:none;"></iframe>
+  <div id="uploadedImageContainer" style="display:none;"></div>
+</div>
 
-  <div id="iframe2Container" class="iframeContainer">
-    <iframe id="iframe2" src=""></iframe>
-  </div>
+<div style="text-align:center; margin-top:10px;">
+  <input type="file" id="imageInput" accept="image/*">
+</div>
 
-  <script>
-    // Save query in cookie
-    document.cookie = "query=${q}; path=/; max-age=31536000";
+<script>
+const tab1 = document.getElementById("tab1");
+const tab2 = document.getElementById("tab2");
+const tab3 = document.getElementById("tab3");
 
-    const btn1 = document.getElementById("btn1");
-    const iframe1Container = document.getElementById("iframe1Container");
-    const iframe1 = document.getElementById("iframe1");
+const iframe1 = document.getElementById("iframe1");
+const iframe2 = document.getElementById("iframe2");
+const uploadedImageContainer = document.getElementById("uploadedImageContainer");
 
-    const goBtn = document.getElementById("goBtn");
-    const customUrl = document.getElementById("customUrl");
-    const iframe2Container = document.getElementById("iframe2Container");
-    const iframe2 = document.getElementById("iframe2");
+const customUrl = document.getElementById("customUrl");
+const goBtn = document.getElementById("goBtn");
+const imageInput = document.getElementById("imageInput");
 
-    // Inventory button
-    btn1.onclick = () => {
-      iframe2Container.style.display = "none"; // hide custom iframe
-      iframe1Container.style.display = "block"; // show BlobTown iframe
+function showTab(tab) {
+  tab1.classList.remove("active");
+  tab2.classList.remove("active");
+  tab3.classList.remove("active");
 
-      // Reset iframe to avoid broken state
-      iframe1.src = "";
-      setTimeout(() => {
-        iframe1.src = "${BUTTON1_URL}" + "${q}";
-      }, 10);
-    };
+  iframe1.style.display = "none";
+  iframe2.style.display = "none";
+  uploadedImageContainer.style.display = "none";
 
-    // Custom URL button
-    goBtn.onclick = () => {
-      let url = customUrl.value.trim();
-      if (!url.startsWith("http://") && !url.startsWith("https://")) {
-        url = "https://" + url;
-      }
-      iframe1Container.style.display = "none"; // hide BlobTown iframe
-      iframe2Container.style.display = "block"; // show custom iframe
-      iframe2.src = url; // reuse the same iframe
-    };
-  </script>
+  if(tab === "tab1") {
+    tab1.classList.add("active");
+    iframe1.style.display = "block";
+    iframe1.src = "${BUTTON1_URL}" + "${q}";
+  } else if(tab === "tab2") {
+    tab2.classList.add("active");
+    iframe2.style.display = "block";
+  } else if(tab === "tab3") {
+    tab3.classList.add("active");
+    uploadedImageContainer.style.display = "block";
+  }
+}
+
+// Tab click handlers
+tab1.onclick = () => showTab("tab1");
+tab2.onclick = () => showTab("tab2");
+tab3.onclick = () => showTab("tab3");
+
+// Custom URL Go button
+goBtn.onclick = () => {
+  let url = customUrl.value.trim();
+  if(!url) return;
+  if(!url.startsWith("http://") && !url.startsWith("https://")) url = "https://" + url;
+  iframe2.src = url;
+  showTab("tab2");
+}
+
+// Local image upload
+imageInput.addEventListener("change", (event) => {
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = document.createElement("img");
+    img.src = e.target.result;
+    uploadedImageContainer.innerHTML = "";
+    uploadedImageContainer.appendChild(img);
+    showTab("tab3");
+  };
+  reader.readAsDataURL(file);
+});
+</script>
+
 </body>
 </html>`);
 });
 
 app.listen(PORT, () => {
-  console.log(\`Server running on port \${PORT}\`);
+  console.log(`Server running on port ${PORT}`);
 });

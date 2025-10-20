@@ -4,9 +4,8 @@ const app = express();
 
 const PORT = process.env.PORT || 3000;
 
-// Button URLs
+// BlobTown URL
 const BUTTON1_URL = "https://app.blobtown.com/?blobt=";
-const BUTTON2_URL = "https://duckduckgo.com";
 
 app.get("/", (req, res) => {
   const q = req.query.q || "";
@@ -21,42 +20,53 @@ app.get("/", (req, res) => {
     body {
       font-family: Arial, sans-serif;
       text-align: center;
-      padding: 50px;
+      padding: 20px;
       background: #f0f0f0;
     }
     h1 { color: #333; }
     button {
-      padding: 15px 30px;
+      padding: 12px 25px;
       margin: 10px;
       font-size: 16px;
       cursor: pointer;
     }
+    input[type="text"] {
+      padding: 8px;
+      font-size: 14px;
+      width: 250px;
+      margin-right: 5px;
+    }
     .iframeContainer {
-      width: 80%;
-      height: 500px;
-      margin: 20px auto;
+      width: 100%;
+      height: 90vh;
+      margin: 20px 0;
       display: none;
       border: 2px solid #ccc;
       border-radius: 8px;
+      overflow: hidden;
     }
     .iframeContainer iframe {
       width: 100%;
       height: 100%;
       border: none;
-      border-radius: 8px;
+      margin: 0;
+      padding: 0;
     }
   </style>
 </head>
 <body>
   <h1>Welcome to stickk's web browser mod for blobtown!</h1>
-  <p>You can make your way back to this page by closing the inventory and re-opening it! (audio works btw so you can watch YouTube!)</p>
-  <p>You can click the inventory button or the DuckDuckGo button below! Uh, happy tracing!</p>
+  <p>Click Inventory to open BlobTown inventory in the page, or enter any website to visit below</p>
 
   <button id="btn1">Inventory</button>
-  <button id="btn2">Go to DuckDuckGo</button>
 
   <div id="iframe1Container" class="iframeContainer">
     <iframe id="iframe1" src=""></iframe>
+  </div>
+
+  <div>
+    <input type="text" id="customUrl" placeholder="Enter a website URL (https://...)">
+    <button id="goBtn">Go</button>
   </div>
 
   <div id="iframe2Container" class="iframeContainer">
@@ -67,23 +77,29 @@ app.get("/", (req, res) => {
     // Save query in cookie
     document.cookie = "query=${q}; path=/; max-age=31536000";
 
-    // Elements
     const btn1 = document.getElementById("btn1");
-    const btn2 = document.getElementById("btn2");
     const iframe1Container = document.getElementById("iframe1Container");
-    const iframe2Container = document.getElementById("iframe2Container");
     const iframe1 = document.getElementById("iframe1");
+
+    const goBtn = document.getElementById("goBtn");
+    const customUrl = document.getElementById("customUrl");
+    const iframe2Container = document.getElementById("iframe2Container");
     const iframe2 = document.getElementById("iframe2");
 
-    // Button actions
+    // Inventory button
     btn1.onclick = () => {
       iframe1.src = "${BUTTON1_URL}" + "${q}";
       iframe1Container.style.display = "block";
       iframe2Container.style.display = "none";
     };
 
-    btn2.onclick = () => {
-      iframe2.src = "${BUTTON2_URL}";
+    // Custom URL button
+    goBtn.onclick = () => {
+      let url = customUrl.value.trim();
+      if (!url.startsWith("http://") && !url.startsWith("https://")) {
+        url = "https://" + url;
+      }
+      iframe2.src = url;
       iframe2Container.style.display = "block";
       iframe1Container.style.display = "none";
     };

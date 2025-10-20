@@ -68,20 +68,27 @@ app.get("/", (req, res) => {
   function openTab(tab) {
     document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
     document.querySelectorAll("iframe, #inventory, #traceImage").forEach(el => el.style.display = "none");
-
+  
     if (tab === "browser") {
       document.querySelector(".tab:nth-child(1)").classList.add("active");
       browserIframe.style.display = "block";
     } else if (tab === "inventory") {
       document.querySelector(".tab:nth-child(2)").classList.add("active");
       document.getElementById("inventory").style.display = "flex";
-      inventoryIframe.src = BLOBTOWN_URL + query;
-      inventoryIframe.style.display = "block";
+  
+      // --- FIX: Reset iframe to force reload every time ---
+      inventoryIframe.src = '';
+      setTimeout(() => {
+        inventoryIframe.src = BLOBTOWN_URL + query;
+        inventoryIframe.style.display = "block";
+      }, 10);
+      // --- END FIX ---
     } else if (tab === "traceImage") {
       document.querySelector(".tab:nth-child(3)").classList.add("active");
       document.getElementById("traceImage").style.display = "flex";
     }
   }
+
 
   function loadSite() {
     let url = document.getElementById("urlInput").value.trim();

@@ -8,7 +8,7 @@ const BLOBTOWN_URL = "https://app.blobtown.com/?blobt=";
 app.get("/", (req, res) => {
   const query = req.query.q || "";
 
-  // Add full no-cache headers
+  // Full no-cache headers
   res.setHeader("Content-Type", "text/html; charset=utf-8");
   res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
   res.setHeader("Pragma", "no-cache");
@@ -22,15 +22,13 @@ app.get("/", (req, res) => {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mini Browser</title>
 <style>
-  body { font-family: sans-serif; background: #1a1a1a; color: #fff; margin: 0; overflow: hidden; }
-  #navbar { display: flex; justify-content: space-between; align-items: center; background: #2a2a2a; padding: 10px; }
+  body { font-family: sans-serif; background: #fff; color: #000; margin: 0; overflow: hidden; }
+  #navbar { display: flex; justify-content: space-between; align-items: center; background: #f0f0f0; padding: 10px; }
   #tabs { display: flex; gap: 10px; }
-  .tab { background: #3a3a3a; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
-  .tab.active { background: #0078ff; }
-  iframe { width: 100%; height: calc(100vh - 50px); border: none; display: none; }
-  #inventory, #traceImage { display: none; flex-direction: column; align-items: center; justify-content: center; background: #111; height: calc(100vh - 50px); }
-  #traceImage { background: #fff; color: #000; }
-  img { max-width: 80%; max-height: 70vh; object-fit: contain; }
+  .tab { background: #e0e0e0; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
+  .tab.active { background: #0078ff; color: #fff; }
+  iframe { width: 100%; height: calc(100vh - 50px); border: none; display: none; background: #fff; }
+  #inventory { display: none; flex-direction: column; align-items: center; justify-content: center; background: #fff; height: calc(100vh - 50px); }
   #refreshBtn { position: fixed; bottom: 15px; right: 15px; background: #0078ff; border: none; border-radius: 8px; padding: 8px 12px; color: white; font-size: 14px; cursor: pointer; }
 </style>
 </head>
@@ -40,7 +38,6 @@ app.get("/", (req, res) => {
   <div id="tabs">
     <div class="tab active" onclick="openTab('browser')">Browser</div>
     <div class="tab" onclick="openTab('inventory')">Inventory</div>
-    <div class="tab" onclick="openTab('traceImage')">Trace Image</div>
   </div>
   <div>
     <input type="text" id="urlInput" placeholder="Enter website..." style="width:200px; padding:5px;">
@@ -49,13 +46,7 @@ app.get("/", (req, res) => {
 </div>
 
 <iframe id="browser"></iframe>
-<div id="inventory">
-  <iframe id="inventoryIframe"></iframe>
-</div>
-<div id="traceImage">
-  <input type="file" id="fileInput" accept="image/*"><br>
-  <img id="uploadedImage" alt="">
-</div>
+<div id="inventory"></div>
 
 <button id="refreshBtn" onclick="location.reload(true)">⟳ Refresh</button>
 
@@ -63,32 +54,32 @@ app.get("/", (req, res) => {
   const BLOBTOWN_URL = "${BLOBTOWN_URL}";
   const query = "${query}";
   const browserIframe = document.getElementById("browser");
-  const inventoryIframe = document.getElementById("inventoryIframe");
+  const inventoryContainer = document.getElementById("inventory");
 
   function openTab(tab) {
     document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-    document.querySelectorAll("iframe, #inventory, #traceImage").forEach(el => el.style.display = "none");
-  
+    document.querySelectorAll("iframe, #inventory").forEach(el => el.style.display = "none");
+
     if (tab === "browser") {
       document.querySelector(".tab:nth-child(1)").classList.add("active");
       browserIframe.style.display = "block";
     } else if (tab === "inventory") {
       document.querySelector(".tab:nth-child(2)").classList.add("active");
-      document.getElementById("inventory").style.display = "flex";
-  
-      // --- FIX: Reset iframe to force reload every time ---
-      inventoryIframe.src = '';
-      setTimeout(() => {
-        inventoryIframe.src = BLOBTOWN_URL + query;
-        inventoryIframe.style.display = "block";
-      }, 10);
-      // --- END FIX ---
-    } else if (tab === "traceImage") {
-      document.querySelector(".tab:nth-child(3)").classList.add("active");
-      document.getElementById("traceImage").style.display = "flex";
+      inventoryContainer.style.display = "flex";
+
+      // Remove previous iframe if exists to fix reload issue
+      inventoryContainer.innerHTML = '';
+      if (query) {
+        const invIframe = document.createElement("iframe");
+        invIframe.src = BLOBTOWN_URL + query;
+        invIframe.style.width = "100%";
+        invIframe.style.height = "100%";
+        invIframe.style.border = "none";
+        invIframe.style.background = "#fff";
+        inventoryContainer.appendChild(invIframe);
+      }
     }
   }
-
 
   function loadSite() {
     let url = document.getElementById("urlInput").value.trim();
@@ -97,24 +88,15 @@ app.get("/", (req, res) => {
     document.cookie = "lastSite=" + url + "; path=/; max-age=31536000";
   }
 
-  document.getElementById("fileInput").addEventListener("change", function(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      const img = document.getElementById("uploadedImage");
-      img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-  });
-
   window.onload = function() {
     if (!query) {
       const cookieSite = document.cookie.split("; ").find(r => r.startsWith("lastSite="));
       if (cookieSite) browserIframe.src = cookieSite.split("=")[1];
+      else browserIframe.src = "about:blank";
     } else {
       browserIframe.src = "about:blank";
     }
+    browserIframe.style.display = "block";
   };
 </script>
 

@@ -5,10 +5,19 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // BlobTown URL
-const BUTTON1_URL = "https://app.blobtown.com/?blobt=";
+const BLOBTOWN_URL = "https://app.blobtown.com/?blobt=";
+
+// Force no-cache globally
+app.use((req, res, next) => {
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+  res.setHeader("Surrogate-Control", "no-store");
+  next();
+});
 
 app.get("/", (req, res) => {
-  const q = req.query.q || "";
+  const query = req.query.q || "";
 
   res.setHeader("Content-Type", "text/html; charset=utf-8");
   res.send(`<!DOCTYPE html>
@@ -18,67 +27,16 @@ app.get("/", (req, res) => {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mini Browser</title>
 <style>
-  body {
-    font-family: sans-serif;
-    background: #1a1a1a;
-    color: #fff;
-    margin: 0;
-    overflow: hidden;
-  }
-  #navbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #2a2a2a;
-    padding: 10px;
-  }
-  #tabs {
-    display: flex;
-    gap: 10px;
-  }
-  .tab {
-    background: #3a3a3a;
-    padding: 6px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-  }
-  .tab.active {
-    background: #0078ff;
-  }
-  #inventory {
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: #111;
-    height: calc(100vh - 50px);
-  }
-  iframe {
-    width: 100%;
-    height: calc(100vh - 50px);
-    border: none;
-  }
-  #uploadBox {
-    display: none;
-    margin-top: 20px;
-  }
-  img {
-    max-width: 80%;
-    max-height: 70vh;
-    object-fit: contain;
-  }
-  #refreshBtn {
-    position: fixed;
-    bottom: 15px;
-    right: 15px;
-    background: #0078ff;
-    border: none;
-    border-radius: 8px;
-    padding: 8px 12px;
-    color: white;
-    font-size: 14px;
-    cursor: pointer;
-  }
+  body { font-family: sans-serif; background: #1a1a1a; color: #fff; margin: 0; overflow: hidden; }
+  #navbar { display: flex; justify-content: space-between; align-items: center; background: #2a2a2a; padding: 10px; }
+  #tabs { display: flex; gap: 10px; }
+  .tab { background: #3a3a3a; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
+  .tab.active { background: #0078ff; }
+  #inventory, #traceImage { display: none; flex-direction: column; align-items: center; justify-content: center; background: #111; height: calc(100vh - 50px); }
+  iframe { width: 100%; height: calc(100vh - 50px); border: none; }
+  #uploadBox { display: none; margin-top: 20px; }
+  img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  #refreshBtn { position: fixed; bottom: 15px; right: 15px; background: #0078ff; border: none; border-radius: 8px; padding: 8px 12px; color: white; font-size: 14px; cursor: pointer; }
 </style>
 </head>
 <body>
@@ -87,6 +45,7 @@ app.get("/", (req, res) => {
   <div id="tabs">
     <div class="tab active" onclick="openTab('browser')">Browser</div>
     <div class="tab" onclick="openTab('inventory')">Inventory</div>
+    <div class="tab" onclick="openTab('traceImage')">Trace Image</div>
   </div>
   <div>
     <input type="text" id="urlInput" placeholder="Enter website..." style="width:200px; padding:5px;">
@@ -94,55 +53,53 @@ app.get("/", (req, res) => {
   </div>
 </div>
 
-<iframe id="browser" src="https://duckduckgo.com" sandbox="allow-same-origin allow-scripts allow-forms"></iframe>
+<iframe id="browser" src="${query ? BLOBTOWN_URL + query : ''}" sandbox="allow-same-origin allow-scripts allow-forms"></iframe>
 
 <div id="inventory">
-  <h2>Inventory</h2>
+  <iframe id="inventoryIframe" src="${query ? BLOBTOWN_URL + query : ''}"></iframe>
+</div>
+
+<div id="traceImage">
   <button onclick="toggleUpload()">Toggle Image Upload</button>
   <div id="uploadBox">
-    <input type="file" id="fileInput" accept="image/*">
-    <br>
+    <input type="file" id="fileInput" accept="image/*"><br>
     <img id="uploadedImage" alt="">
   </div>
 </div>
 
-<button id="refreshBtn" onclick="window.location.reload(true)">⟳ Refresh UI</button>
+<button id="refreshBtn" onclick="fullRefresh()">⟳ Refresh</button>
 
 <script>
-  let iframe = document.getElementById("browser");
+  const tabs = document.querySelectorAll(".tab");
+  const browserIframe = document.getElementById("browser");
+  const inventoryDiv = document.getElementById("inventory");
+  const traceDiv = document.getElementById("traceImage");
 
-  function openTab(tabName) {
-    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-    document.querySelectorAll("iframe, #inventory").forEach(el => el.style.display = "none");
+  function openTab(name) {
+    tabs.forEach(t => t.classList.remove("active"));
+    [browserIframe, inventoryDiv, traceDiv].forEach(el => el.style.display = "none");
 
-    if (tabName === "inventory") {
-      document.querySelector(".tab:nth-child(2)").classList.add("active");
-      document.getElementById("inventory").style.display = "flex";
-    } else {
-      document.querySelector(".tab:nth-child(1)").classList.add("active");
-      iframe.style.display = "block";
-      iframe.src = iframe.src; // Fixes the white screen bug
+    if (name === "browser") {
+      tabs[0].classList.add("active");
+      browserIframe.style.display = "block";
+    } else if (name === "inventory") {
+      tabs[1].classList.add("active");
+      inventoryDiv.style.display = "flex";
+      // reload inventory iframe properly
+      const iframe = document.getElementById("inventoryIframe");
+      iframe.src = iframe.src;
+    } else if (name === "traceImage") {
+      tabs[2].classList.add("active");
+      traceDiv.style.display = "flex";
     }
   }
 
   function loadSite() {
-    const urlInput = document.getElementById("urlInput");
-    let url = urlInput.value.trim();
-
+    let url = document.getElementById("urlInput").value.trim();
     if (!url.startsWith("http")) url = "https://" + url;
-    iframe.src = url;
-    document.cookie = \`lastSite=\${url}; path=/; max-age=31536000\`;
+    browserIframe.src = url;
+    document.cookie = `lastSite=${url}; path=/; max-age=31536000`;
   }
-
-  // Only load cookie if query is null
-  window.onload = function() {
-    const params = new URLSearchParams(window.location.search);
-    const query = params.get("q");
-    if (!query) {
-      const cookieSite = document.cookie.split("; ").find(r => r.startsWith("lastSite="));
-      if (cookieSite) iframe.src = cookieSite.split("=")[1];
-    }
-  };
 
   function toggleUpload() {
     const box = document.getElementById("uploadBox");
@@ -154,11 +111,26 @@ app.get("/", (req, res) => {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = function(e) {
-      const img = document.getElementById("uploadedImage");
-      img.src = e.target.result;
+      document.getElementById("uploadedImage").src = e.target.result;
     };
     reader.readAsDataURL(file);
   });
+
+  function fullRefresh() {
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get("q");
+    window.location.href = window.location.pathname + (q ? "?q=" + encodeURIComponent(q) : "");
+  }
+
+  // Load inventory cookie query only if URL has no query
+  window.onload = function() {
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get("q");
+    if (!q) {
+      const cookieSite = document.cookie.split("; ").find(c => c.trim().startsWith("lastSite="));
+      if (cookieSite) browserIframe.src = cookieSite.split("=")[1];
+    }
+  };
 </script>
 
 </body>

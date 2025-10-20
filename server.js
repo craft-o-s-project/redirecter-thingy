@@ -25,15 +25,29 @@ app.get("/", (req, res) => {
   .tab.active { background: #fff; font-weight: bold; }
   .container { width: 90%; margin: 10px auto; height: 60vh; border: 2px solid #ccc; border-radius: 8px; overflow: hidden; position: relative; display: flex; align-items: center; justify-content: center; background: #fff; }
   iframe { width: 100%; height: 100%; border: none; }
-  #uploadedImageContainer { display: none; width: 100%; height: 100%; align-items: center; justify-content: center; display: flex; }
+  #uploadedImageContainer { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; display: none; }
   #uploadedImageContainer img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px; }
   #customUrlBar { text-align: center; margin-top: 5px; }
   input[type="text"], input[type="file"] { padding: 6px; font-size: 14px; margin: 5px; }
   button { padding: 6px 12px; margin: 0 5px; }
+  #refreshBtn {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    font-size: 18px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: none;
+    background: #007bff;
+    color: white;
+    cursor: pointer;
+    z-index: 100;
+  }
+  #refreshBtn:hover { background: #0056b3; }
 </style>
 </head>
 <body>
-<h1>hi this is my browser mod!</h1>
+<h1> hi! you are using stickk's in game tracing mod!</h1>
 
 <div class="tabs">
   <div class="tab active" id="tab1">Inventory</div>
@@ -56,6 +70,8 @@ app.get("/", (req, res) => {
   <input type="file" id="imageInput" accept="image/*">
 </div>
 
+<button id="refreshBtn">⟳</button>
+
 <script>
 const tab1 = document.getElementById("tab1");
 const tab2 = document.getElementById("tab2");
@@ -68,6 +84,9 @@ const uploadedImageContainer = document.getElementById("uploadedImageContainer")
 const customUrl = document.getElementById("customUrl");
 const goBtn = document.getElementById("goBtn");
 const imageInput = document.getElementById("imageInput");
+const refreshBtn = document.getElementById("refreshBtn");
+
+let iframe1Loaded = false;
 
 function showTab(tab) {
   tab1.classList.remove("active");
@@ -81,7 +100,10 @@ function showTab(tab) {
   if(tab === "tab1") {
     tab1.classList.add("active");
     iframe1.style.display = "block";
-    iframe1.src = "${BUTTON1_URL}" + "${q}";
+    if(!iframe1Loaded) {
+      iframe1.src = "${BUTTON1_URL}" + "${q}";
+      iframe1Loaded = true;
+    }
   } else if(tab === "tab2") {
     tab2.classList.add("active");
     iframe2.style.display = "block";
@@ -119,6 +141,17 @@ imageInput.addEventListener("change", (event) => {
   };
   reader.readAsDataURL(file);
 });
+
+// Refresh button
+refreshBtn.onclick = () => {
+  if(tab1.classList.contains("active") && iframe1Loaded) {
+    iframe1.contentWindow.location.reload();
+  } else if(tab2.classList.contains("active")) {
+    iframe2.contentWindow.location.reload();
+  }
+  // Do nothing for uploaded image
+};
+
 </script>
 
 </body>

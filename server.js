@@ -23,9 +23,10 @@ app.get("/", (req, res) => {
   .tab { flex: 1; text-align: center; padding: 10px; cursor: pointer; border-right: 1px solid #bbb; }
   .tab:last-child { border-right: none; }
   .tab.active { background: #fff; font-weight: bold; }
-  .container { width: 90%; margin: 10px auto; height: 60vh; border: 2px solid #ccc; border-radius: 8px; overflow: hidden; position: relative; }
+  .container { width: 90%; margin: 10px auto; height: 60vh; border: 2px solid #ccc; border-radius: 8px; overflow: hidden; position: relative; display: flex; align-items: center; justify-content: center; background: #fff; }
   iframe { width: 100%; height: 100%; border: none; }
-  #uploadedImageContainer img { max-width: 100%; max-height: 100%; border-radius: 8px; display: block; margin: 0 auto; }
+  #uploadedImageContainer { display: none; width: 100%; height: 100%; align-items: center; justify-content: center; display: flex; }
+  #uploadedImageContainer img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px; }
   #customUrlBar { text-align: center; margin-top: 5px; }
   input[type="text"], input[type="file"] { padding: 6px; font-size: 14px; margin: 5px; }
   button { padding: 6px 12px; margin: 0 5px; }
@@ -48,7 +49,7 @@ app.get("/", (req, res) => {
 <div class="container">
   <iframe id="iframe1" src=""></iframe>
   <iframe id="iframe2" src="" style="display:none;"></iframe>
-  <div id="uploadedImageContainer" style="display:none;"></div>
+  <div id="uploadedImageContainer"></div>
 </div>
 
 <div style="text-align:center; margin-top:10px;">
@@ -86,7 +87,7 @@ function showTab(tab) {
     iframe2.style.display = "block";
   } else if(tab === "tab3") {
     tab3.classList.add("active");
-    uploadedImageContainer.style.display = "block";
+    uploadedImageContainer.style.display = "flex";
   }
 }
 

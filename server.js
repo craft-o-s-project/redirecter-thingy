@@ -106,7 +106,7 @@ app.get("/", (req, res) => {
   </div>
 </div>
 
-<button id="refreshBtn" onclick="location.reload()">⟳ Refresh</button>
+<button id="refreshBtn" onclick="window.location.reload(true)">⟳ Refresh</button>
 
 <script>
   let currentTab = "browser";

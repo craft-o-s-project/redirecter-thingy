@@ -56,7 +56,7 @@ app.get("/", (req, res) => {
 </head>
 <body>
   <h1>Welcome to stickk's web browser mod for blobtown!</h1>
-  <p>Click Inventory to open BlobTown inventory in the page, or enter any website to visit below</p>
+  <p>Click Inventory to open BlobTown, or enter any website below!</p>
 
   <button id="btn1">Inventory</button>
 
@@ -88,9 +88,14 @@ app.get("/", (req, res) => {
 
     // Inventory button
     btn1.onclick = () => {
-      iframe1.src = "${BUTTON1_URL}" + "${q}";
-      iframe1Container.style.display = "block";
-      iframe2Container.style.display = "none";
+      iframe2Container.style.display = "none"; // hide custom iframe
+      iframe1Container.style.display = "block"; // show BlobTown iframe
+
+      // Reset iframe to avoid broken state
+      iframe1.src = "";
+      setTimeout(() => {
+        iframe1.src = "${BUTTON1_URL}" + "${q}";
+      }, 10);
     };
 
     // Custom URL button
@@ -99,9 +104,9 @@ app.get("/", (req, res) => {
       if (!url.startsWith("http://") && !url.startsWith("https://")) {
         url = "https://" + url;
       }
-      iframe2.src = url;
-      iframe2Container.style.display = "block";
-      iframe1Container.style.display = "none";
+      iframe1Container.style.display = "none"; // hide BlobTown iframe
+      iframe2Container.style.display = "block"; // show custom iframe
+      iframe2.src = url; // reuse the same iframe
     };
   </script>
 </body>
@@ -109,5 +114,5 @@ app.get("/", (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(\`Server running on port \${PORT}\`);
 });

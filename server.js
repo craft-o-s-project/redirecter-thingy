@@ -12,150 +12,159 @@ app.get("/", (req, res) => {
 
   res.setHeader("Content-Type", "text/html; charset=utf-8");
   res.send(`<!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<title>BlobTown Tabs + Custom URL + Image</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mini Browser</title>
 <style>
-  body { font-family: Arial, sans-serif; margin: 0; background: #f0f0f0; }
-  h1 { text-align: center; padding: 10px; margin: 0; }
-  .tabs { display: flex; background: #ddd; }
-  .tab { flex: 1; text-align: center; padding: 10px; cursor: pointer; border-right: 1px solid #bbb; }
-  .tab:last-child { border-right: none; }
-  .tab.active { background: #fff; font-weight: bold; }
-  .container { width: 90%; margin: 10px auto; height: 60vh; border: 2px solid #ccc; border-radius: 8px; overflow: hidden; position: relative; display: flex; align-items: center; justify-content: center; background: #fff; }
-  iframe { width: 100%; height: 100%; border: none; }
-  #uploadedImageContainer { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; display: none; }
-  #uploadedImageContainer img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px; }
-  #customUrlBar { text-align: center; margin-top: 5px; }
-  input[type="text"], input[type="file"] { padding: 6px; font-size: 14px; margin: 5px; }
-  button { padding: 6px 12px; margin: 0 5px; }
+  body {
+    font-family: sans-serif;
+    background: #1a1a1a;
+    color: #fff;
+    margin: 0;
+    overflow: hidden;
+  }
+  #navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #2a2a2a;
+    padding: 10px;
+  }
+  #tabs {
+    display: flex;
+    gap: 10px;
+  }
+  .tab {
+    background: #3a3a3a;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .tab.active {
+    background: #0078ff;
+  }
+  #inventory {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #111;
+    height: calc(100vh - 50px);
+  }
+  iframe {
+    width: 100%;
+    height: calc(100vh - 50px);
+    border: none;
+  }
+  #uploadBox {
+    display: none;
+    margin-top: 20px;
+  }
+  img {
+    max-width: 80%;
+    max-height: 70vh;
+    object-fit: contain;
+  }
   #refreshBtn {
     position: fixed;
-    bottom: 10px;
-    right: 10px;
-    font-size: 18px;
-    padding: 6px 10px;
-    border-radius: 6px;
+    bottom: 15px;
+    right: 15px;
+    background: #0078ff;
     border: none;
-    background: #007bff;
+    border-radius: 8px;
+    padding: 8px 12px;
     color: white;
+    font-size: 14px;
     cursor: pointer;
-    z-index: 100;
   }
-  #refreshBtn:hover { background: #0056b3; }
 </style>
 </head>
 <body>
-<h1> hi! you are using stickk's in game tracing mod!</h1>
 
-<div class="tabs">
-  <div class="tab active" id="tab1">Inventory</div>
-  <div class="tab" id="tab2">Custom URL</div>
-  <div class="tab" id="tab3">Local Image</div>
+<div id="navbar">
+  <div id="tabs">
+    <div class="tab active" onclick="openTab('browser')">Browser</div>
+    <div class="tab" onclick="openTab('inventory')">Inventory</div>
+  </div>
+  <div>
+    <input type="text" id="urlInput" placeholder="Enter website..." style="width:200px; padding:5px;">
+    <button onclick="loadSite()">Go</button>
+  </div>
 </div>
 
-<div id="customUrlBar">
-  <input type="text" id="customUrl" placeholder="Enter website URL">
-  <button id="goBtn">Go</button>
+<iframe id="browser" src="https://duckduckgo.com" sandbox="allow-same-origin allow-scripts allow-forms"></iframe>
+
+<div id="inventory">
+  <h2>Inventory</h2>
+  <button onclick="toggleUpload()">Toggle Image Upload</button>
+  <div id="uploadBox">
+    <input type="file" id="fileInput" accept="image/*">
+    <br>
+    <img id="uploadedImage" alt="">
+  </div>
 </div>
 
-<div class="container">
-  <iframe id="iframe1" src=""></iframe>
-  <iframe id="iframe2" src="" style="display:none;"></iframe>
-  <div id="uploadedImageContainer"></div>
-</div>
-
-<div style="text-align:center; margin-top:10px;">
-  <input type="file" id="imageInput" accept="image/*">
-</div>
-
-<button id="refreshBtn">⟳</button>
+<button id="refreshBtn" onclick="location.reload()">⟳ Refresh</button>
 
 <script>
-const tab1 = document.getElementById("tab1");
-const tab2 = document.getElementById("tab2");
-const tab3 = document.getElementById("tab3");
+  let currentTab = "browser";
+  let iframe = document.getElementById("browser");
 
-const iframe1 = document.getElementById("iframe1");
-const iframe2 = document.getElementById("iframe2");
-const uploadedImageContainer = document.getElementById("uploadedImageContainer");
+  function openTab(tabName) {
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    document.querySelectorAll("iframe, #inventory").forEach(el => el.style.display = "none");
 
-const customUrl = document.getElementById("customUrl");
-const goBtn = document.getElementById("goBtn");
-const imageInput = document.getElementById("imageInput");
-const refreshBtn = document.getElementById("refreshBtn");
-
-let iframe1Loaded = false;
-
-function showTab(tab) {
-  tab1.classList.remove("active");
-  tab2.classList.remove("active");
-  tab3.classList.remove("active");
-
-  iframe1.style.display = "none";
-  iframe2.style.display = "none";
-  uploadedImageContainer.style.display = "none";
-
-  if(tab === "tab1") {
-    tab1.classList.add("active");
-    iframe1.style.display = "block";
-    if(!iframe1Loaded) {
-      iframe1.src = "${BUTTON1_URL}" + "${q}";
-      iframe1Loaded = true;
+    if (tabName === "inventory") {
+      document.querySelector(`.tab:nth-child(2)`).classList.add("active");
+      document.getElementById("inventory").style.display = "flex";
+    } else {
+      document.querySelector(`.tab:nth-child(1)`).classList.add("active");
+      iframe.style.display = "block";
+      iframe.src = iframe.src; // Fixes the white screen bug
     }
-  } else if(tab === "tab2") {
-    tab2.classList.add("active");
-    iframe2.style.display = "block";
-  } else if(tab === "tab3") {
-    tab3.classList.add("active");
-    uploadedImageContainer.style.display = "flex";
   }
-}
 
-// Tab click handlers
-tab1.onclick = () => showTab("tab1");
-tab2.onclick = () => showTab("tab2");
-tab3.onclick = () => showTab("tab3");
+  function loadSite() {
+    const urlInput = document.getElementById("urlInput");
+    let url = urlInput.value.trim();
 
-// Custom URL Go button
-goBtn.onclick = () => {
-  let url = customUrl.value.trim();
-  if(!url) return;
-  if(!url.startsWith("http://") && !url.startsWith("https://")) url = "https://" + url;
-  iframe2.src = url;
-  showTab("tab2");
-}
+    if (!url.startsWith("http")) url = "https://" + url;
+    iframe.src = url;
+    document.cookie = `lastSite=${url}; path=/; max-age=31536000`;
+  }
 
-// Local image upload
-imageInput.addEventListener("change", (event) => {
-  const file = event.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const img = document.createElement("img");
-    img.src = e.target.result;
-    uploadedImageContainer.innerHTML = "";
-    uploadedImageContainer.appendChild(img);
-    showTab("tab3");
+  // Only load cookie if query is null
+  window.onload = function() {
+    const params = new URLSearchParams(window.location.search);
+    const query = params.get("q");
+    if (!query) {
+      const cookieSite = document.cookie.split("; ").find(r => r.startsWith("lastSite="));
+      if (cookieSite) iframe.src = cookieSite.split("=")[1];
+    }
   };
-  reader.readAsDataURL(file);
-});
 
-// Refresh button
-refreshBtn.onclick = () => {
-  if(tab1.classList.contains("active") && iframe1Loaded) {
-    iframe1.contentWindow.location.reload();
-  } else if(tab2.classList.contains("active")) {
-    iframe2.contentWindow.location.reload();
+  function toggleUpload() {
+    const box = document.getElementById("uploadBox");
+    box.style.display = box.style.display === "none" ? "block" : "none";
   }
-  // Do nothing for uploaded image
-};
 
+  document.getElementById("fileInput").addEventListener("change", function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = document.getElementById("uploadedImage");
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
 </script>
 
 </body>
-</html>`);
+</html>
+`);
 });
 
 app.listen(PORT, () => {

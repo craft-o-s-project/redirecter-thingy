@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: blobinv-redir
+    name: discord-query-forwarder
     runtime: node
     plan: free
     buildCommand: corepack enable && pnpm install --frozen-lockfile

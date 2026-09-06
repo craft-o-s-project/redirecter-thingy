@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: blobinv-redir
+    runtime: node
+    plan: free
+    buildCommand: corepack enable && pnpm install --frozen-lockfile
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: 20.19.4
+      - key: DISCORD_WEBHOOK_URL
+        sync: false

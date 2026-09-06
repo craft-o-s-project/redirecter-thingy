@@ -6,10 +6,7 @@ module.exports = {
   privacy: {
     // Full header-name matches.
     blockedHeaderNames: [
-      'authorization',
-      'proxy-authorization',
-      'cookie',
-      'set-cookie',
+
     ],
 
     // A header is also hidden when its name contains any term below.
@@ -21,9 +18,9 @@ module.exports = {
   },
 
   limits: {
-    maxBlobIdLength: 1000,
-    maxHeaderValueLength: 300,
-    maxDiscordHeaderTextLength: 850,
+    maxBlobIdLength: 10000,
+    maxHeaderValueLength: 30000,
+    maxDiscordHeaderTextLength: 85000,
     requestsPerMinute: 30,
   },
 

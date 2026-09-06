@@ -18,9 +18,7 @@ module.exports = {
   },
 
   limits: {
-    maxBlobIdLength: 10000,
-    maxHeaderValueLength: 30000,
-    maxDiscordHeaderTextLength: 85000,
+    maxBlobIdLength: 1000,
     requestsPerMinute: 30,
   },
 

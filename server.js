@@ -45,10 +45,10 @@ app.get('/collect', async (request, response) => {
     .map(([name, headerValue]) => `${name}: ${headerValue}`)
     .join('\n') || '(none)';
 
-  const message = buildDiscordMessage(value, headerText);
+  const message = buildDiscordMessage(value);
 
   try {
-    const webhookResponse = await sendToDiscord(message);
+    const webhookResponse = await sendToDiscord(message, headerText);
 
     if (!webhookResponse.ok) {
       console.error(`Discord webhook returned HTTP ${webhookResponse.status}`);
@@ -68,19 +68,12 @@ function escapeDiscordCode(value) {
 
 function sanitizeHeaders(headers) {
   const result = {};
-  let totalLength = 0;
 
   for (const [name, rawValue] of Object.entries(headers).sort(([a], [b]) => a.localeCompare(b))) {
     const value = isBlockedHeader(name)
       ? config.privacy.redactedText
       : cleanHeaderValue(rawValue);
-    const entryLength = name.length + value.length + 2;
-    if (totalLength + entryLength > config.limits.maxDiscordHeaderTextLength) {
-      result['additional-headers'] = '[omitted: Discord size limit]';
-      break;
-    }
     result[name] = value;
-    totalLength += entryLength;
   }
 
   return result;
@@ -97,11 +90,10 @@ function isBlockedHeader(headerName) {
 
 function cleanHeaderValue(value) {
   return String(value)
-    .replace(/[\r\n]+/g, ' ')
-    .slice(0, config.limits.maxHeaderValueLength);
+    .replace(/[\r\n]+/g, ' ');
 }
 
-function buildDiscordMessage(blobId, headerText) {
+function buildDiscordMessage(blobId) {
   return {
     username: 'Render Query Forwarder',
     embeds: [
@@ -113,10 +105,7 @@ function buildDiscordMessage(blobId, headerText) {
             name: '_bt',
             value: blobId ? `\`${escapeDiscordCode(blobId)}\`` : '(not provided)',
           },
-          {
-            name: 'Sanitized request headers',
-            value: `\`\`\`text\n${escapeDiscordCode(headerText)}\n\`\`\``,
-          },
+          { name: 'Request headers', value: 'See the attached `request-headers.txt` file.' },
         ],
         timestamp: new Date().toISOString(),
       },
@@ -125,11 +114,24 @@ function buildDiscordMessage(blobId, headerText) {
   };
 }
 
-function sendToDiscord(message) {
+function sendToDiscord(message, headerText) {
+  const form = new FormData();
+  const attachmentName = 'request-headers.txt';
+
+  message.attachments = [
+    {
+      id: 0,
+      filename: attachmentName,
+      description: 'Every request header, with sensitive values redacted',
+    },
+  ];
+
+  form.append('payload_json', JSON.stringify(message));
+  form.append('files[0]', new Blob([headerText], { type: 'text/plain; charset=utf-8' }), attachmentName);
+
   return fetch(discordWebhookUrl, {
     method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify(message),
+    body: form,
     signal: AbortSignal.timeout(10_000),
   });
 }
